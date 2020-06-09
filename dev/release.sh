@@ -11,12 +11,19 @@ OS=("linux")
 ARCH=("arm" "amd64")
 ARM=7
 
-# -------------- Functions --------------
+#
+# ─── FUNCTIONS ──────────────────────────────────────────────────────────────────
+#
+
 log() {
     echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*"
 }
-# ---------------------------------------
 
+
+#
+# ─── EXECUTION ──────────────────────────────────────────────────────────────────
+#
+    
 cd "$PW_PATH/webui/frontend"
 
 log "Compiling frontend..."
@@ -72,7 +79,7 @@ for os in "${OS[@]}"; do
         exec_path="$output_path/piworker"
 
         if [[ ! -x "$exec_path" ]]; then
-            log "[$os-$arch] Can't found the executable"
+            log "[$os-$arch] Executable not found"
             continue
         fi
 
@@ -90,7 +97,7 @@ for os in "${OS[@]}"; do
         log "[$os-$arch] Removing the executable"
         rm "$exec_path"
 
-        log "[$os-$arch] Making checksum of $filename"
+        log "[$os-$arch] Doing checksum of $filename"
         if ! sha256sum "$filename" &>"$filename.sha256sum"; then
             log "[$os-$arch] Error when trying to make the sha256sum file"
             continue
