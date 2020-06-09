@@ -11,23 +11,28 @@ OS=("linux")
 ARCH=("arm" "amd64")
 ARM=7
 
+# -------------- Functions --------------
+log() {
+    echo "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*"
+}
+# ---------------------------------------
 
 cd "$PW_PATH/webui/frontend"
 
-echo "Compiling frontend..."
+log "Compiling frontend..."
 if ! npm run build >/dev/null; then
-    echo "Error when trying to compile the frontend"
+    log "Error when trying to compile the frontend"
     exit 1
 fi
-echo "Done!"
+log "Done!"
 
 cd "../.."
 
-echo "Running pkger..."
+log "Running pkger..."
 if ! pkger; then
-    echo "Error when running pkger"
+    log "Error when running pkger"
 fi
-echo "Done!"
+log "Done!"
 
 for os in "${OS[@]}"; do
     for arch in "${ARCH[@]}"; do
@@ -35,7 +40,7 @@ for os in "${OS[@]}"; do
 
         mkdir -p "$output_path"
 
-        echo "[$os-$arch] Building"
+        log "[$os-$arch] Building"
         if [[ "$os" == "linux" && "$arch" == "arm" ]]; then
             if env \
                 CC=arm-linux-gnueabihf-gcc \
@@ -46,9 +51,9 @@ for os in "${OS[@]}"; do
                 GOARM="$ARM" \
                 go build -o "$output_path"
             then
-                echo "[$os-$arch] Compiled successfully"
+                log "[$os-$arch] Compiled successfully"
             else
-                echo "[$os-$arch] Error when trying to compile"
+                log "[$os-$arch] Error when trying to compile"
                 continue
             fi
         else
@@ -57,9 +62,9 @@ for os in "${OS[@]}"; do
                 GOARCH="$arch" \
                 go build -o "$output_path"
             then
-                echo "[$os-$arch] Compiled successfully"
+                log "[$os-$arch] Compiled successfully"
             else
-                echo "[$os-$arch] Error when trying to compile"
+                log "[$os-$arch] Error when trying to compile"
                 continue
             fi
         fi
@@ -67,31 +72,31 @@ for os in "${OS[@]}"; do
         exec_path="$output_path/piworker"
 
         if [[ ! -x "$exec_path" ]]; then
-            echo "[$os-$arch] Can't found the executable"
+            log "[$os-$arch] Can't found the executable"
             continue
         fi
 
-        echo "[$os-$arch] Compressing the executable"
+        log "[$os-$arch] Compressing the executable"
 
         filename="piworker-${os}_${arch}-${VERSION}.tar.gz"
 
         cd "$output_path"
 
         if ! tar -czf "$filename" "$exec_path"; then
-            echo "[$os-$arch] Error when trying to compress the executable"
+            log "[$os-$arch] Error when trying to compress the executable"
             continue
         fi
 
-        echo "[$os-$arch] Removing the executable"
+        log "[$os-$arch] Removing the executable"
         rm "$exec_path"
 
-        echo "[$os-$arch] Making checksum of $filename"
+        log "[$os-$arch] Making checksum of $filename"
         if ! sha256sum "$filename" &>"$filename.sha256sum"; then
-            echo "[$os-$arch] Error when trying to make the sha256sum file"
+            log "[$os-$arch] Error when trying to make the sha256sum file"
             continue
         fi
 
-        echo "[$os-$arch] Process finished"
+        log "[$os-$arch] Process finished"
 
         cd "$PW_PATH"
     done
